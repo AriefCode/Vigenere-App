@@ -930,6 +930,308 @@ textarea::placeholder, input[type="text"]::placeholder {
 }
 
 /* ================================================================
+   20. BYTE DICTIONARY
+   ================================================================ */
+
+.btn-bytedict {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: center;
+  margin-top: 12px;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.btn-bytedict:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.bytedict-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.bytedict-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  max-width: 940px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+.bytedict-header {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.bytedict-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+.bytedict-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.bytedict-close {
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color var(--transition), border-color var(--transition);
+}
+.bytedict-close:hover { color: var(--text); border-color: var(--accent); }
+
+.bytedict-edu-box {
+  margin: 14px 24px 0;
+  padding: 10px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.bytedict-edu-box strong {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.bytedict-edu-box code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--mono-bg);
+  padding: 0 3px;
+}
+
+.bytedict-controls {
+  padding: 12px 24px 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.bytedict-search {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  width: 150px;
+  outline: none;
+  transition: border-color var(--transition);
+  -moz-appearance: textfield;
+}
+.bytedict-search::-webkit-outer-spin-button,
+.bytedict-search::-webkit-inner-spin-button { -webkit-appearance: none; }
+.bytedict-search:focus { border-color: var(--accent); }
+.bytedict-search::placeholder { color: var(--text-muted); font-size: 11px; }
+
+.bytedict-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.bytedict-filter-btn {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.45;
+  transition: opacity var(--transition), border-color var(--transition), color var(--transition);
+}
+.bytedict-filter-btn.active {
+  opacity: 1;
+  border-color: var(--cat-color, var(--border));
+  color: var(--text);
+}
+.bytedict-filter-btn .cat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--border));
+  flex-shrink: 0;
+}
+
+.bytedict-body {
+  overflow-y: auto;
+  padding: 14px 24px 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.bytedict-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 2px;
+}
+
+.byte-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 1px 4px;
+  border: 1px solid var(--border);
+  cursor: default;
+  min-width: 0;
+  position: relative;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+.byte-cell:hover {
+  border-color: var(--cat-color, var(--accent));
+  background: var(--bg);
+  z-index: 2;
+}
+.byte-cell.dimmed { opacity: 0.08; }
+.byte-cell.highlighted {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  background: var(--accent-light);
+  opacity: 1;
+}
+.byte-cell-val {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-muted);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.byte-cell-char {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+  text-align: center;
+}
+.byte-cell-char.is-label {
+  font-size: 8px;
+  color: var(--text-muted);
+}
+.byte-cell-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--border));
+  flex-shrink: 0;
+}
+
+/* Category colors — sets --cat-color for children to inherit */
+.cat-control          { --cat-color: #9CA3AF; }
+.cat-whitespace       { --cat-color: #C4B99A; }
+.cat-symbol           { --cat-color: #8B5CF6; }
+.cat-digit            { --cat-color: #0891B2; }
+.cat-uppercase        { --cat-color: #B91C1C; }
+.cat-lowercase        { --cat-color: #2563EB; }
+.cat-extended-control { --cat-color: #D97706; }
+.cat-extended         { --cat-color: #059669; }
+
+.bytedict-tooltip {
+  position: fixed;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 9px 13px;
+  pointer-events: none;
+  display: none;
+  z-index: 1200;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  max-width: 230px;
+}
+.bytedict-tooltip.visible { display: block; }
+.bd-tip-row {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.bd-tip-lbl { opacity: 0.55; min-width: 24px; }
+.bd-tip-desc {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: normal;
+}
+
+.bytedict-legend {
+  padding: 10px 24px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
+.bytedict-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.bytedict-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--border));
+  flex-shrink: 0;
+}
+
+/* ================================================================
    18. RESPONSIVE
    ================================================================ */
 @media (max-width: 768px) {

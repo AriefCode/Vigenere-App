@@ -214,6 +214,9 @@
         <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">Ketik kunci untuk melihat ruang kunci.</div>
       </div>
 
+      <!-- Byte Dictionary trigger -->
+      <button class="btn-bytedict" id="openByteDictBtn">&#x1F4D6; Kamus Byte 0&ndash;255</button>
+
       <!-- Formula reference -->
       <div class="sidebar-card">
         <div class="card-title">Formula</div>
@@ -250,6 +253,59 @@
 
 </div><!-- /container -->
 
+<!-- Byte Dictionary Modal -->
+<div id="bytedictBackdrop" class="bytedict-backdrop" role="dialog" aria-modal="true" aria-labelledby="bytedictTitle">
+  <div class="bytedict-modal">
+
+    <div class="bytedict-header">
+      <div>
+        <div class="bytedict-title" id="bytedictTitle">Kamus Byte 0&ndash;255</div>
+        <div class="bytedict-subtitle">Himpunan semesta H = &#x7B;0, 1, &hellip;, 255&#x7D;, |H| = 256</div>
+      </div>
+      <button class="bytedict-close" id="bytedictClose" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="bytedict-edu-box">
+      <strong>Konsep Matematika Diskrit yang Relevan</strong>
+      <div>&bull; Himpunan semesta byte: <code>H = &#x7B;0, 1, 2, &hellip;, 255&#x7D;</code></div>
+      <div>&bull; Kardinalitas: <code>|H| = 256 = 2<sup>8</sup></code></div>
+      <div>&bull; Subset printable ASCII: <code>H<sub>p</sub> &sub; H, |H<sub>p</sub>| = 95</code></div>
+      <div>&bull; Operasi enkripsi: <code>f: H &times; H &rarr; H</code>, dengan <code>f(p, k) = (p + k) mod 256</code></div>
+    </div>
+
+    <div class="bytedict-controls">
+      <input type="number" class="bytedict-search" id="bytedictSearch" placeholder="Cari byte 0&ndash;255" min="0" max="255">
+      <div class="bytedict-filter-group">
+        <button class="bytedict-filter-btn cat-control active"          data-cat="control">         <span class="cat-dot"></span>control</button>
+        <button class="bytedict-filter-btn cat-whitespace active"       data-cat="whitespace">      <span class="cat-dot"></span>whitespace</button>
+        <button class="bytedict-filter-btn cat-digit active"            data-cat="digit">           <span class="cat-dot"></span>digit</button>
+        <button class="bytedict-filter-btn cat-uppercase active"        data-cat="uppercase">       <span class="cat-dot"></span>uppercase</button>
+        <button class="bytedict-filter-btn cat-lowercase active"        data-cat="lowercase">       <span class="cat-dot"></span>lowercase</button>
+        <button class="bytedict-filter-btn cat-symbol active"           data-cat="symbol">          <span class="cat-dot"></span>symbol</button>
+        <button class="bytedict-filter-btn cat-extended-control active" data-cat="extended-control"><span class="cat-dot"></span>ext-ctrl</button>
+        <button class="bytedict-filter-btn cat-extended active"         data-cat="extended">        <span class="cat-dot"></span>extended</button>
+      </div>
+    </div>
+
+    <div class="bytedict-body">
+      <div class="bytedict-grid" id="bytedictGrid"></div>
+    </div>
+
+    <div class="bytedict-legend">
+      <div class="bytedict-legend-item cat-control">         <div class="bytedict-legend-dot"></div>Control (0&ndash;31, 127)</div>
+      <div class="bytedict-legend-item cat-whitespace">      <div class="bytedict-legend-dot"></div>Whitespace (32)</div>
+      <div class="bytedict-legend-item cat-symbol">          <div class="bytedict-legend-dot"></div>Symbol (33&ndash;47, 58&ndash;64, 91&ndash;96, 123&ndash;126)</div>
+      <div class="bytedict-legend-item cat-digit">           <div class="bytedict-legend-dot"></div>Digit (48&ndash;57)</div>
+      <div class="bytedict-legend-item cat-uppercase">       <div class="bytedict-legend-dot"></div>Uppercase (65&ndash;90)</div>
+      <div class="bytedict-legend-item cat-lowercase">       <div class="bytedict-legend-dot"></div>Lowercase (97&ndash;122)</div>
+      <div class="bytedict-legend-item cat-extended-control"><div class="bytedict-legend-dot"></div>Ext. Control (128&ndash;159)</div>
+      <div class="bytedict-legend-item cat-extended">        <div class="bytedict-legend-dot"></div>Extended / Latin-1 (160&ndash;255)</div>
+    </div>
+
+  </div>
+</div>
+<div id="bytedictTooltip" class="bytedict-tooltip"></div>
+
 <!-- Lightbox modal -->
 <div id="lightboxBackdrop" class="lightbox-backdrop" role="dialog" aria-modal="true">
   <button class="lightbox-close" id="lightboxClose" aria-label="Tutup">&times;</button>
@@ -261,6 +317,7 @@
 <script src="js/fileHandler.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/modal.js"></script>
+<script src="js/byteDictionary.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
