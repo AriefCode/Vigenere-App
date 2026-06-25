@@ -3,6 +3,22 @@
 Implementasi Vigenère Cipher extended ke domain byte (0–255, mod 256).
 Tugas Matematika Diskrit — Politeknik Caltex Riau.
 
+## Struktur File
+
+```
+vigenere-app/
+├── index.html          ← Markup HTML, link ke CSS dan JS
+├── README.md
+├── css/
+│   └── style.css       ← Semua styling (Swiss/editorial design)
+└── js/
+    ├── vigenere.js     ← Algoritma murni: encrypt + decrypt
+    ├── base64.js       ← Utilitas konversi: Base64 + UTF-8
+    ├── fileHandler.js  ← File API: validasi, FileReader, Blob, download
+    ├── ui.js           ← Semua DOM manipulation + state
+    └── main.js         ← Entry point: DOMContentLoaded + event wiring
+```
+
 ## Cara Membuka
 
 Tidak memerlukan server. Buka langsung di browser:
@@ -12,6 +28,10 @@ File → Open File → index.html
 ```
 
 Atau klik dua kali `index.html` dari File Explorer.
+
+> **Catatan:** Karena menggunakan `<script src="...">` (bukan ES modules),
+> tidak ada `import`/`export`. Semua file dibaca browser secara berurutan
+> dan berbagi scope global.
 
 ## Cara Test
 
