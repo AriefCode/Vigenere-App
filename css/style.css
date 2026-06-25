@@ -930,7 +930,33 @@ textarea::placeholder, input[type="text"]::placeholder {
 }
 
 /* ================================================================
-   20. BYTE DICTIONARY
+   20. REACTIVE TEXT MODE
+   ================================================================ */
+
+/* Computing badge — shown during debounce period */
+.text-computing {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  animation: fadeIn 0.15s ease;
+}
+.text-computing.active { display: flex; }
+
+/* Hint text shown in output box when key is missing */
+.output-box-hint {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 14px;
+  font-family: var(--font-sans);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ================================================================
+   21. BYTE DICTIONARY
    ================================================================ */
 
 .btn-bytedict {

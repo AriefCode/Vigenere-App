@@ -154,66 +154,135 @@ function getTextMode() {
   return document.querySelector('input[name="textMode"]:checked').value;
 }
 
-function processTextMode() {
+/* Core computation — called by both manual trigger and reactive debounce.
+   reactive=true: suppresses "required field" errors in favour of
+   contextual hints; reactive=false: classic validation with error msgs. */
+function _computeText(reactive) {
+  _setTextComputing(false);
   clearTextMessages();
-  document.getElementById('textOutput').classList.remove('visible');
-  document.getElementById('stepSection').classList.remove('visible');
-  document.getElementById('statsCard').style.display = 'none';
 
-  const input = document.getElementById('textInput').value;
+  const outputEl   = document.getElementById('textOutput');
+  const stepEl     = document.getElementById('stepSection');
+  const statsCard  = document.getElementById('statsCard');
+  const outputBox  = document.getElementById('textOutputBox');
+
+  outputEl.classList.remove('visible');
+  stepEl.classList.remove('visible');
+  statsCard.style.display = 'none';
+  outputBox.classList.remove('output-box-hint');
+
+  const input  = document.getElementById('textInput').value;
   const keyStr = document.getElementById('textKey').value;
-  const mode = getTextMode();
+  const mode   = getTextMode();
 
-  // Validation
+  // --- Edge cases ---
+  if (!input && !keyStr) return; // both empty → silent default state
+
   if (!keyStr) {
-    showMsg(document.getElementById('textError'), document.getElementById('textErrorMsg'), 'Kunci tidak boleh kosong.');
+    if (reactive && input) {
+      // Prompt the user to add a key — show hint in the output area
+      document.getElementById('textOutputLabel').textContent = 'Output';
+      outputBox.textContent = 'Ketik kunci untuk melihat hasil enkripsi.';
+      outputBox.classList.add('output-box-hint');
+      outputEl.classList.add('visible');
+    } else if (!reactive) {
+      showMsg(document.getElementById('textError'), document.getElementById('textErrorMsg'), 'Kunci tidak boleh kosong.');
+    }
     return;
   }
+
+  if (!input) return; // key filled, no input → wait silently
+
+  // Key length warning (shown in both modes — educational)
   if (keyStr.length < 3) {
     showMsg(document.getElementById('textWarn'), document.getElementById('textWarnMsg'), 'Kunci sangat pendek (<3 karakter). Keamanan rendah.');
-  }
-  if (!input) {
-    showMsg(document.getElementById('textError'), document.getElementById('textErrorMsg'), 'Input tidak boleh kosong.');
-    return;
   }
 
   const keyBytes = strToBytes(keyStr);
   let plainBytes, resultBytes, outputText;
 
   if (mode === 'encrypt') {
-    plainBytes = strToBytes(input);
+    plainBytes  = strToBytes(input);
     resultBytes = vigenereEncrypt(plainBytes, keyBytes);
-    outputText = uint8ToBase64(resultBytes);
+    outputText  = uint8ToBase64(resultBytes);
     document.getElementById('textOutputLabel').textContent = 'Output (Base64)';
   } else {
-    // Decrypt: input is Base64
     try {
       plainBytes = base64ToUint8(input);
     } catch {
-      showMsg(document.getElementById('textError'), document.getElementById('textErrorMsg'), 'Input bukan Base64 yang valid. Untuk dekripsi, masukkan ciphertext dalam format Base64.');
+      showMsg(document.getElementById('textError'), document.getElementById('textErrorMsg'),
+        'Input bukan Base64 yang valid. Untuk dekripsi, masukkan ciphertext dalam format Base64.');
       return;
     }
     resultBytes = vigenereDecrypt(plainBytes, keyBytes);
-    outputText = bytesToStr(resultBytes);
+    outputText  = bytesToStr(resultBytes);
     document.getElementById('textOutputLabel').textContent = 'Output (Plaintext)';
   }
 
-  document.getElementById('textOutputBox').textContent = outputText;
-  document.getElementById('textOutput').classList.add('visible');
+  outputBox.textContent = outputText;
+  outputEl.classList.add('visible');
   hideMsg(document.getElementById('textCopyOk'));
 
   buildStepTable(plainBytes, keyBytes, resultBytes, mode);
 
-  // Stats sidebar
-  const statsCard = document.getElementById('statsCard');
-  const statsContent = document.getElementById('statsContent');
-  statsContent.innerHTML = `
-    Input: ${plainBytes.length} byte(s)<br>
-    Kunci: ${keyBytes.length} byte(s)<br>
-    Output: ${outputText.length} char(s)<br>
-    Mode: ${mode === 'encrypt' ? 'Enkripsi' : 'Dekripsi'}
-  `;
+  document.getElementById('statsContent').innerHTML =
+    `Input: ${plainBytes.length} byte(s)<br>` +
+    `Kunci: ${keyBytes.length} byte(s)<br>` +
+    `Output: ${outputText.length} char(s)<br>` +
+    `Mode: ${mode === 'encrypt' ? 'Enkripsi' : 'Dekripsi'}`;
   statsCard.style.display = 'block';
+}
+
+// Manual trigger (button click) — keeps classic required-field validation
+function processTextMode() { _computeText(false); }
+
+/* ================================================================
+   REACTIVE TEXT MODE — debounced auto-update
+   ================================================================ */
+
+let _textDebounceTimer = null;
+
+function _getDebounceDelay(inputLen) {
+  if (inputLen > 5000) return 700;
+  if (inputLen > 1000) return 500;
+  return 300;
+}
+
+function _setTextComputing(show) {
+  const el = document.getElementById('textComputing');
+  if (el) el.classList.toggle('active', show);
+}
+
+// Debounced entry point — called on every input/keyup in text mode
+function scheduleTextUpdate() {
+  if (_textDebounceTimer) clearTimeout(_textDebounceTimer);
+
+  const input  = document.getElementById('textInput').value;
+  const keyStr = document.getElementById('textKey').value;
+  if (!input && !keyStr) { _computeText(true); return; } // instant clear
+
+  const delay = _getDebounceDelay(input.length);
+  _setTextComputing(true);
+  _textDebounceTimer = setTimeout(() => {
+    _textDebounceTimer = null;
+    _computeText(true);
+  }, delay);
+}
+
+function initTextReactive() {
+  // Hide the manual Proses button — reactive mode makes it redundant
+  document.getElementById('textProcess').style.display = 'none';
+
+  document.getElementById('textInput').addEventListener('input', scheduleTextUpdate);
+  document.getElementById('textKey').addEventListener('input', scheduleTextUpdate);
+
+  // Mode toggle is an explicit user action — re-compute immediately, no debounce
+  document.querySelectorAll('input[name="textMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (_textDebounceTimer) { clearTimeout(_textDebounceTimer); _textDebounceTimer = null; }
+      _computeText(true);
+    });
+  });
 }
 
 function loadTextExample() {
@@ -223,9 +292,7 @@ function loadTextExample() {
   document.querySelector('input[name="textMode"][value="encrypt"]').checked = true;
   updateKeyspaceDisplay('KRIPTO');
   updateKeyInfo('KRIPTO', keyInput, document.getElementById('textKeyInfo'));
-  clearTextMessages();
-  document.getElementById('textOutput').classList.remove('visible');
-  document.getElementById('stepSection').classList.remove('visible');
+  _computeText(true); // immediate — no need to debounce an explicit example load
 }
 
 function copyOutput() {
