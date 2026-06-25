@@ -252,6 +252,10 @@ textarea::placeholder, input[type="text"]::placeholder {
   margin-bottom: 0;
 }
 
+.key-row > .btn-ghost {
+  margin-bottom: 21px; /* key-info offset: margin-top(5) + min-height(16) */
+}
+
 /* ================================================================
    8. MODE TOGGLE (Enkripsi / Dekripsi)
    ================================================================ */
@@ -384,6 +388,10 @@ textarea::placeholder, input[type="text"]::placeholder {
    11. DROP ZONE
    ================================================================ */
 .drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   border: 1.5px dashed var(--border);
   padding: 36px 24px;
   text-align: center;
@@ -391,6 +399,7 @@ textarea::placeholder, input[type="text"]::placeholder {
   transition: border-color var(--transition), background var(--transition);
   position: relative;
   margin-bottom: 20px;
+  min-height: 140px;
 }
 
 .drop-zone:hover, .drop-zone.drag-over {
@@ -408,6 +417,9 @@ textarea::placeholder, input[type="text"]::placeholder {
 }
 
 .drop-zone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-muted);
   margin-bottom: 10px;
 }
@@ -684,6 +696,90 @@ textarea::placeholder, input[type="text"]::placeholder {
 
 .step-table .hidden-row { display: none; }
 .step-table.expanded .hidden-row { display: table-row; }
+
+/* Visualization toggle button */
+.viz-header-right {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.viz-toggle {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition), border-color var(--transition);
+}
+.viz-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Base64 visualization cell styles */
+.b64v-bytes {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.b64v-pad {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.b64v-bits {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.b64v-chunks {
+  white-space: nowrap;
+}
+.b64v-chunk {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+}
+.b64v-chunk sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.b64v-sep {
+  color: var(--border);
+  margin: 0 4px;
+  font-size: 11px;
+}
+.b64v-chars {
+  white-space: nowrap;
+}
+.b64v-b64char {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 14px;
+  text-align: center;
+}
+.b64v-muted { color: var(--text-muted); }
+
+/* Sidebar formula subheadings */
+.formula-subhead {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-top: 12px;
+  margin-bottom: 5px;
+}
+.formula-subhead:first-of-type { margin-top: 4px; }
 
 /* ================================================================
    15. SIDEBAR CARDS
@@ -1147,7 +1243,7 @@ textarea::placeholder, input[type="text"]::placeholder {
   align-items: center;
   padding: 5px 1px 4px;
   border: 1px solid var(--border);
-  cursor: default;
+  cursor: pointer;
   min-width: 0;
   position: relative;
   user-select: none;
@@ -1204,6 +1300,130 @@ textarea::placeholder, input[type="text"]::placeholder {
 .cat-lowercase        { --cat-color: #2563EB; }
 .cat-extended-control { --cat-color: #D97706; }
 .cat-extended         { --cat-color: #059669; }
+
+/* ================================================================
+   BYTE DETAIL CARD
+   ================================================================ */
+
+.bytedetail-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.bytedetail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  max-width: 300px;
+  width: 100%;
+  padding: 44px 24px 24px;
+  position: relative;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  animation: bdCardIn 0.15s ease;
+}
+
+@keyframes bdCardIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.bytedetail-close {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  transition: color var(--transition);
+}
+.bytedetail-close:hover { color: var(--text); }
+
+.bytedetail-char-box {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  line-height: 1;
+  color: var(--text);
+  padding: 20px 16px;
+  background: var(--bg);
+  border: 1px solid var(--cat-color, var(--border));
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+}
+.bytedetail-char-box.is-label {
+  font-size: 26px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.bytedetail-byte {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.bytedetail-cat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.bytedetail-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--border));
+  flex-shrink: 0;
+}
+
+.bytedetail-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.bytedetail-table {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  text-align: left;
+}
+
+.bytedetail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.bytedetail-row:last-child { border-bottom: none; }
+.bytedetail-row span { color: var(--text-muted); }
+.bytedetail-row strong { color: var(--text); }
 
 .bytedict-tooltip {
   position: fixed;

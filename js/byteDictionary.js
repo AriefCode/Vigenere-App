@@ -116,22 +116,69 @@ function openByteDictionary() {
 }
 
 function closeByteDictionary() {
+  closeByteDetail();
   document.getElementById('bytedictBackdrop').style.display = 'none';
   document.body.style.overflow = '';
   _bdHideTooltip();
 }
 
+// --- Byte Detail Card ---
+
+function openByteDetail(entry) {
+  _bdHideTooltip();
+
+  const hex = entry.byte.toString(16).toUpperCase().padStart(2, '0');
+  const bin = entry.byte.toString(2).padStart(8, '0');
+  const oct = entry.byte.toString(8).padStart(3, '0');
+
+  const charEl = document.getElementById('bytedictDetailChar');
+  charEl.className = `bytedetail-char-box cat-${entry.category}${entry.isLabel ? ' is-label' : ''}`;
+  charEl.textContent = entry.char;
+
+  document.getElementById('bytedictDetailByte').textContent = `Byte ${entry.byte}`;
+
+  const catEl = document.getElementById('bytedictDetailCat');
+  catEl.innerHTML =
+    `<span class="bytedetail-cat-dot cat-${entry.category}"></span>${entry.category}`;
+
+  document.getElementById('bytedictDetailDesc').textContent = entry.description;
+
+  document.getElementById('bytedictDetailTable').innerHTML =
+    `<div class="bytedetail-row"><span>Dec</span><strong>${entry.byte}</strong></div>` +
+    `<div class="bytedetail-row"><span>Hex</span><strong>0x${hex}</strong></div>` +
+    `<div class="bytedetail-row"><span>Bin</span><strong>${bin.slice(0,4)}&thinsp;${bin.slice(4)}</strong></div>` +
+    `<div class="bytedetail-row"><span>Oct</span><strong>${oct}</strong></div>`;
+
+  document.getElementById('bytedictDetailBackdrop').style.display = 'flex';
+}
+
+function closeByteDetail() {
+  document.getElementById('bytedictDetailBackdrop').style.display = 'none';
+}
+
 function initByteDictionary() {
+  // Main kamus byte modal
   document.getElementById('bytedictClose').addEventListener('click', closeByteDictionary);
   document.getElementById('bytedictBackdrop').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeByteDictionary();
   });
+
+  // Detail card
+  document.getElementById('bytedictDetailClose').addEventListener('click', closeByteDetail);
+  document.getElementById('bytedictDetailBackdrop').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeByteDetail();
+  });
+
+  // ESC: close detail first if open, then main modal
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' &&
-        document.getElementById('bytedictBackdrop').style.display === 'flex') {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('bytedictDetailBackdrop').style.display === 'flex') {
+      closeByteDetail();
+    } else if (document.getElementById('bytedictBackdrop').style.display === 'flex') {
       closeByteDictionary();
     }
   });
+
   document.getElementById('openByteDictBtn').addEventListener('click', openByteDictionary);
   document.getElementById('bytedictSearch').addEventListener('input', _bdOnSearch);
   document.querySelectorAll('.bytedict-filter-btn').forEach(btn => {
@@ -166,6 +213,8 @@ function _bdRenderGrid() {
     cell.appendChild(valEl);
     cell.appendChild(charEl);
     cell.appendChild(dotEl);
+
+    cell.addEventListener('click', () => openByteDetail(entry));
 
     cell.addEventListener('mouseenter', (e) => {
       const hex = entry.byte.toString(16).toUpperCase().padStart(2, '0');

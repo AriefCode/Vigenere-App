@@ -101,9 +101,12 @@
         <div class="step-section" id="stepSection">
           <div class="step-header">
             <span class="step-title">Visualisasi Byte-by-Byte</span>
-            <span class="step-count" id="stepCount"></span>
+            <div class="viz-header-right">
+              <span class="step-count" id="stepCount"></span>
+              <button class="viz-toggle" id="stepVizToggle">Sembunyikan</button>
+            </div>
           </div>
-          <div class="step-table-wrap">
+          <div class="step-table-wrap" id="stepTableWrap">
             <table class="step-table" id="stepTable">
               <thead>
                 <tr>
@@ -116,6 +119,23 @@
                 </tr>
               </thead>
               <tbody id="stepBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Base64 visualization -->
+        <div class="step-section" id="base64VizSection">
+          <div class="step-header">
+            <span class="step-title">Visualisasi Base64</span>
+            <div class="viz-header-right">
+              <span class="step-count" id="base64VizCount"></span>
+              <button class="viz-toggle" id="base64VizToggle">Tampilkan</button>
+            </div>
+          </div>
+          <div class="step-table-wrap" id="base64VizTableWrap" style="display:none">
+            <table class="step-table" id="base64VizTable">
+              <thead><tr id="base64VizHead"></tr></thead>
+              <tbody id="base64VizBody"></tbody>
             </table>
           </div>
         </div>
@@ -233,8 +253,28 @@
         </div>
         <div class="formula-note">
           Domain operasi: bytes (0&ndash;255).<br>
-          Plaintext &amp; kunci dikonversi ke bytes via UTF-8.<br>
+          Plaintext &amp; kunci dikonversi ke bytes via ASCII standar.<br>
           Output enkripsi: Base64.
+        </div>
+      </div>
+
+      <!-- Base64 formula reference -->
+      <div class="sidebar-card">
+        <div class="card-title">Formula Base64</div>
+        <div class="formula-subhead">Encode (3 byte &rarr; 4 karakter)</div>
+        <div class="formula-note">
+          Grup 3 byte = 24 bit<br>
+          24 bit &divide; 6 = 4 grup 6-bit<br>
+          Tiap 6-bit &rarr; karakter Base64<br>
+          Keyspace: 2<sup>6</sup> = 64 karakter
+        </div>
+        <div class="formula-subhead">Decode (4 karakter &rarr; 3 byte)</div>
+        <div class="formula-note">
+          Tiap karakter &rarr; nilai 6-bit<br>
+          4 &times; 6-bit = 24-bit &rarr; 3 byte<br>
+        </div>
+        <div class="formula-note" style="margin-top:8px;font-size:11px">
+          * Padding <code style="font-family:var(--font-mono);font-size:10px">=</code> digunakan jika jumlah byte bukan kelipatan 3
         </div>
       </div>
 
@@ -250,8 +290,8 @@
 
   <!-- FOOTER -->
   <footer class="site-footer">
-    <span class="footer-text">Matematika Diskrit &mdash; Politeknik Caltex Riau &mdash; 2025</span>
-    <span class="footer-algo">Vigenère Extended &middot; GF(256)</span>
+    <span class="footer-text">Matematika Diskrit &mdash; Politeknik Caltex Riau &mdash; 2026</span>
+    <span class="footer-algo">Vigenère Cipher</span>
   </footer>
 
 </div><!-- /container -->
@@ -309,6 +349,18 @@
 </div>
 <div id="bytedictTooltip" class="bytedict-tooltip"></div>
 
+<!-- Byte Detail Card -->
+<div id="bytedictDetailBackdrop" class="bytedetail-backdrop">
+  <div class="bytedetail-card">
+    <button class="bytedetail-close" id="bytedictDetailClose" aria-label="Tutup">&times;</button>
+    <div class="bytedetail-char-box" id="bytedictDetailChar"></div>
+    <div class="bytedetail-byte" id="bytedictDetailByte"></div>
+    <div class="bytedetail-cat" id="bytedictDetailCat"></div>
+    <div class="bytedetail-desc" id="bytedictDetailDesc"></div>
+    <div class="bytedetail-table" id="bytedictDetailTable"></div>
+  </div>
+</div>
+
 <!-- Lightbox modal -->
 <div id="lightboxBackdrop" class="lightbox-backdrop" role="dialog" aria-modal="true">
   <button class="lightbox-close" id="lightboxClose" aria-label="Tutup">&times;</button>
@@ -321,6 +373,7 @@
 <script src="js/ui.js"></script>
 <script src="js/modal.js"></script>
 <script src="js/byteDictionary.js"></script>
+<script src="js/base64Viz.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

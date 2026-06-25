@@ -28,6 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('textLoadExample').addEventListener('click', loadTextExample);
   document.getElementById('textCopy').addEventListener('click', copyOutput);
 
+  // Visualization toggles
+  document.getElementById('stepVizToggle').addEventListener('click', () => {
+    _stepVizVisible = !_stepVizVisible;
+    _applyStepViz();
+  });
+  document.getElementById('base64VizToggle').addEventListener('click', () => {
+    _base64VizVisible = !_base64VizVisible;
+    _applyBase64Viz();
+  });
+
   // Allow pressing Enter in key field to trigger process
   document.getElementById('textKey').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') processTextMode();

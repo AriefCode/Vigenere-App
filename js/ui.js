@@ -67,7 +67,7 @@ function showMsg(el, textEl, msg) {
   if (textEl) textEl.textContent = msg;
 }
 
-function hideMsg(el) { el.classList.remove('visible'); }
+function hideMsg(el) { if (el) el.classList.remove('visible'); }
 
 function clearTextMessages() {
   hideMsg(document.getElementById('textError'));
@@ -168,6 +168,7 @@ function _computeText(reactive) {
 
   outputEl.classList.remove('visible');
   stepEl.classList.remove('visible');
+  document.getElementById('base64VizSection').classList.remove('visible');
   statsCard.style.display = 'none';
   outputBox.classList.remove('output-box-hint');
 
@@ -224,6 +225,10 @@ function _computeText(reactive) {
   hideMsg(document.getElementById('textCopyOk'));
 
   buildStepTable(plainBytes, keyBytes, resultBytes, mode);
+  _applyStepViz();
+
+  buildBase64VizTable(mode, resultBytes, input);
+  _applyBase64Viz();
 
   document.getElementById('statsContent').innerHTML =
     `Input: ${plainBytes.length} byte(s)<br>` +
@@ -237,15 +242,36 @@ function _computeText(reactive) {
 function processTextMode() { _computeText(false); }
 
 /* ================================================================
+   VISUALIZATION TOGGLES
+   ================================================================ */
+
+let _stepVizVisible   = true;   // byte-by-byte: default show
+let _base64VizVisible = false;  // Base64: default hide
+
+function _applyStepViz() {
+  const wrap = document.getElementById('stepTableWrap');
+  const btn  = document.getElementById('stepVizToggle');
+  if (wrap) wrap.style.display = _stepVizVisible ? '' : 'none';
+  if (btn)  btn.textContent   = _stepVizVisible ? 'Sembunyikan' : 'Tampilkan';
+}
+
+function _applyBase64Viz() {
+  const wrap = document.getElementById('base64VizTableWrap');
+  const btn  = document.getElementById('base64VizToggle');
+  if (wrap) wrap.style.display = _base64VizVisible ? '' : 'none';
+  if (btn)  btn.textContent   = _base64VizVisible ? 'Sembunyikan' : 'Tampilkan';
+}
+
+/* ================================================================
    REACTIVE TEXT MODE — debounced auto-update
    ================================================================ */
 
 let _textDebounceTimer = null;
 
 function _getDebounceDelay(inputLen) {
-  if (inputLen > 5000) return 700;
-  if (inputLen > 1000) return 500;
-  return 300;
+  if (inputLen > 5000) return 600;
+  if (inputLen > 1000) return 400;
+  return 150;
 }
 
 function _setTextComputing(show) {
@@ -253,28 +279,36 @@ function _setTextComputing(show) {
   if (el) el.classList.toggle('active', show);
 }
 
-// Debounced entry point — called on every input/keyup in text mode
+// Debounced entry point — called on every input event in text mode
 function scheduleTextUpdate() {
   if (_textDebounceTimer) clearTimeout(_textDebounceTimer);
 
   const input  = document.getElementById('textInput').value;
   const keyStr = document.getElementById('textKey').value;
-  if (!input && !keyStr) { _computeText(true); return; } // instant clear
+
+  // Both empty: clear output state immediately
+  if (!input && !keyStr) {
+    _setTextComputing(false);
+    _computeText(true);
+    return;
+  }
 
   const delay = _getDebounceDelay(input.length);
   _setTextComputing(true);
   _textDebounceTimer = setTimeout(() => {
     _textDebounceTimer = null;
-    _computeText(true);
+    try { _computeText(true); } catch(e) { _setTextComputing(false); throw e; }
   }, delay);
 }
 
 function initTextReactive() {
-  // Hide the manual Proses button — reactive mode makes it redundant
-  document.getElementById('textProcess').style.display = 'none';
+  const textInput = document.getElementById('textInput');
+  const textKey   = document.getElementById('textKey');
 
-  document.getElementById('textInput').addEventListener('input', scheduleTextUpdate);
-  document.getElementById('textKey').addEventListener('input', scheduleTextUpdate);
+  textInput.addEventListener('input',  scheduleTextUpdate);
+  textInput.addEventListener('change', scheduleTextUpdate);
+  textKey.addEventListener('input',   scheduleTextUpdate);
+  textKey.addEventListener('change',  scheduleTextUpdate);
 
   // Mode toggle is an explicit user action — re-compute immediately, no debounce
   document.querySelectorAll('input[name="textMode"]').forEach(radio => {
