@@ -25,10 +25,9 @@ function formatBigInt(n) {
   if (rem) parts.unshift(rem);
   const formatted = parts.join('.');
 
-  // Scientific notation suffix if large
   if (s.length > 15) {
     const exp = s.length - 1;
-    const mantissa = (parseFloat(s.slice(0, 5)) / 10000).toFixed(3);
+    const mantissa = (parseFloat(s.slice(0, 5)) / 10000).toFixed(2);
     return { formatted, sci: `${mantissa} &times; 10<sup>${exp}</sup>` };
   }
   return { formatted, sci: null };
@@ -42,11 +41,19 @@ function updateKeyspaceDisplay(keyStr) {
   const display = document.getElementById('keyspaceDisplay');
   const bigEl = document.getElementById('keyspaceBig');
 
-  display.innerHTML = `<div>256<sup>${n}</sup> = ${formatted}</div>`;
   if (sci) {
-    bigEl.innerHTML = `<span class="keyspace-sci">&asymp; ${sci}</span>`;
+    // Large number: sci notation prominent, full number in collapsible details
+    display.innerHTML =
+      `<div class="keyspace-label">256<sup>${n}</sup> &asymp;</div>` +
+      `<div class="keyspace-sci-main">${sci}</div>`;
+    bigEl.innerHTML =
+      `<details class="keyspace-details">` +
+      `<summary>Angka lengkap</summary>` +
+      `<span class="keyspace-full">${formatted}</span>` +
+      `</details>`;
     bigEl.style.display = 'block';
   } else {
+    display.innerHTML = `<div>256<sup>${n}</sup> = ${formatted}</div>`;
     bigEl.style.display = 'none';
   }
 }
@@ -211,9 +218,11 @@ function processTextMode() {
 
 function loadTextExample() {
   document.getElementById('textInput').value = 'Halo Politeknik Caltex Riau';
-  document.getElementById('textKey').value = 'KRIPTO';
+  const keyInput = document.getElementById('textKey');
+  keyInput.value = 'KRIPTO';
   document.querySelector('input[name="textMode"][value="encrypt"]').checked = true;
   updateKeyspaceDisplay('KRIPTO');
+  updateKeyInfo('KRIPTO', keyInput, document.getElementById('textKeyInfo'));
   clearTextMessages();
   document.getElementById('textOutput').classList.remove('visible');
   document.getElementById('stepSection').classList.remove('visible');
@@ -367,10 +376,37 @@ function processFileMode() {
   );
 }
 
+function attachPreviewWithFallback(imgEl, url, fallbackMsg) {
+  const item = imgEl.closest('.preview-item');
+  const prev = item.querySelector('.preview-fallback');
+  if (prev) prev.remove();
+  imgEl.style.display = '';
+  imgEl.onerror = () => {
+    imgEl.style.display = 'none';
+    const fallback = document.createElement('div');
+    fallback.className = 'preview-fallback';
+    fallback.innerHTML =
+      '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="3" y="3" width="18" height="18"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>' +
+      '</svg>' +
+      `<span>${fallbackMsg}</span>`;
+    item.appendChild(fallback);
+  };
+  imgEl.src = url;
+}
+
 function renderImagePreview(originalBytes, processedBytes, mimeType) {
   const { urlOrig, urlProc } = createImageObjectURLs(originalBytes, processedBytes, mimeType);
-  document.getElementById('previewBefore').src = urlOrig;
-  document.getElementById('previewAfter').src = urlProc;
+
+  attachPreviewWithFallback(
+    document.getElementById('previewBefore'), urlOrig,
+    'Preview tidak tersedia<br>(format tidak didukung browser)'
+  );
+  attachPreviewWithFallback(
+    document.getElementById('previewAfter'), urlProc,
+    'Image terenkripsi<br>(struktur byte rusak)'
+  );
+
   document.getElementById('previewGrid').classList.add('visible');
 }
 
@@ -382,8 +418,10 @@ function downloadResult() {
 }
 
 function loadFileExample() {
-  document.getElementById('fileKey').value = 'MATDIS';
+  const keyInput = document.getElementById('fileKey');
+  keyInput.value = 'MATDIS';
   updateKeyspaceDisplay('MATDIS');
+  updateKeyInfo('MATDIS', keyInput, document.getElementById('fileKeyInfo'));
 }
 
 /* ================================================================
@@ -448,11 +486,40 @@ function switchTab(tab) {
 }
 
 /* ================================================================
+   KEY INFO (byte count + whitespace warning + trim button)
+   ================================================================ */
+
+function updateKeyInfo(keyStr, inputEl, infoEl) {
+  if (!keyStr) { infoEl.innerHTML = ''; return; }
+  const byteCount = strToBytes(keyStr).length;
+  const spaceCount = (keyStr.match(/\s/g) || []).length;
+  if (spaceCount > 0) {
+    infoEl.innerHTML =
+      `<span>${byteCount} byte</span> ` +
+      `<span class="key-info-warn">(termasuk ${spaceCount} spasi)</span> `;
+    const trimBtn = document.createElement('button');
+    trimBtn.className = 'btn-trim';
+    trimBtn.textContent = 'Trim';
+    trimBtn.addEventListener('click', () => {
+      inputEl.value = keyStr.trim();
+      inputEl.dispatchEvent(new Event('input'));
+    });
+    infoEl.appendChild(trimBtn);
+  } else {
+    infoEl.innerHTML = `<span>${byteCount} byte</span>`;
+  }
+}
+
+/* ================================================================
    SHARED KEY INPUT → KEYSPACE UPDATE
    ================================================================ */
 
 function bindKeyspaceUpdate(inputId) {
-  document.getElementById(inputId).addEventListener('input', (e) => {
+  const inputEl = document.getElementById(inputId);
+  const infoId = inputId === 'textKey' ? 'textKeyInfo' : 'fileKeyInfo';
+  const infoEl = document.getElementById(infoId);
+  inputEl.addEventListener('input', (e) => {
     updateKeyspaceDisplay(e.target.value);
+    updateKeyInfo(e.target.value, inputEl, infoEl);
   });
 }
