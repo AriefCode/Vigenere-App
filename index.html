@@ -185,13 +185,13 @@
           <button class="btn-primary" id="fileDownload" style="margin-top:4px">Unduh File</button>
         </div>
 
-        <!-- Image preview -->
+        <!-- Media preview (image / audio / video) -->
         <div class="preview-grid" id="previewGrid">
-          <div class="preview-item">
+          <div class="preview-item" id="previewBeforeItem">
             <div class="preview-label">Sebelum</div>
             <img class="preview-img" id="previewBefore" alt="Sebelum">
           </div>
-          <div class="preview-item">
+          <div class="preview-item" id="previewAfterItem">
             <div class="preview-label">Setelah</div>
             <img class="preview-img" id="previewAfter" alt="Setelah">
           </div>
@@ -250,10 +250,17 @@
 
 </div><!-- /container -->
 
+<!-- Lightbox modal -->
+<div id="lightboxBackdrop" class="lightbox-backdrop" role="dialog" aria-modal="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Tutup">&times;</button>
+  <img class="lightbox-img" id="lightboxImg" alt="Preview diperbesar">
+</div>
+
 <script src="js/vigenere.js"></script>
 <script src="js/base64.js"></script>
 <script src="js/fileHandler.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/modal.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

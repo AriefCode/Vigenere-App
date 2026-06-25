@@ -18,6 +18,8 @@ const ALLOWED_TYPES = {
 };
 
 const IMAGE_TYPES = new Set(['png','jpg','jpeg','webp']);
+const AUDIO_TYPES = new Set(['mp3','wav','ogg']);
+const VIDEO_TYPES = new Set(['mp4','webm']);
 
 const MAX_SIZE = 40 * 1024 * 1024; // 40 MB
 const PROGRESS_THRESHOLD = 5 * 1024 * 1024; // 5 MB
@@ -66,6 +68,11 @@ function triggerDownload(bytes, filename, mimeType) {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+/** Creates a single Blob URL for audio/video preview */
+function createMediaObjectURL(bytes, mimeType) {
+  return URL.createObjectURL(new Blob([bytes], { type: mimeType }));
 }
 
 /** Creates object URLs for before/after image preview (caller sets img.src) */

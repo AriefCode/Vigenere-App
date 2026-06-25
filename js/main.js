@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initDropZone();
+  initModal();
   updateKeyspaceDisplay('');
 
   // Dark mode toggle

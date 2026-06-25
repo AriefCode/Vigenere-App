@@ -353,9 +353,13 @@ function processFileMode() {
       const baseName = currentFile.name.replace(/\.[^.]+$/, '');
       currentResultFilename = `${baseName}_${mode === 'encrypt' ? 'enc' : 'dec'}.${ext}`;
 
-      // Image preview
+      // Media preview
       if (IMAGE_TYPES.has(ext)) {
         renderImagePreview(inputBytes, resultBytes, ALLOWED_TYPES[ext]);
+      } else if (AUDIO_TYPES.has(ext)) {
+        renderAudioPreview(inputBytes, resultBytes, ALLOWED_TYPES[ext], mode);
+      } else if (VIDEO_TYPES.has(ext)) {
+        renderVideoPreview(inputBytes, resultBytes, ALLOWED_TYPES[ext], mode);
       }
 
       // Show success
@@ -376,11 +380,18 @@ function processFileMode() {
   );
 }
 
+/* Replace content inside a .preview-item, preserving the .preview-label */
+function setPreviewContent(itemId, el) {
+  const item = document.getElementById(itemId);
+  const label = item.querySelector('.preview-label');
+  item.innerHTML = '';
+  if (label) item.appendChild(label);
+  item.appendChild(el);
+}
+
+/* Wire onerror fallback + click-to-zoom on an <img> element */
 function attachPreviewWithFallback(imgEl, url, fallbackMsg) {
   const item = imgEl.closest('.preview-item');
-  const prev = item.querySelector('.preview-fallback');
-  if (prev) prev.remove();
-  imgEl.style.display = '';
   imgEl.onerror = () => {
     imgEl.style.display = 'none';
     const fallback = document.createElement('div');
@@ -392,21 +403,73 @@ function attachPreviewWithFallback(imgEl, url, fallbackMsg) {
       `<span>${fallbackMsg}</span>`;
     item.appendChild(fallback);
   };
+  imgEl.onclick = () => openLightbox(url);
   imgEl.src = url;
 }
 
 function renderImagePreview(originalBytes, processedBytes, mimeType) {
   const { urlOrig, urlProc } = createImageObjectURLs(originalBytes, processedBytes, mimeType);
 
-  attachPreviewWithFallback(
-    document.getElementById('previewBefore'), urlOrig,
-    'Preview tidak tersedia<br>(format tidak didukung browser)'
-  );
-  attachPreviewWithFallback(
-    document.getElementById('previewAfter'), urlProc,
-    'Image terenkripsi<br>(struktur byte rusak)'
-  );
+  const beforeImg = document.createElement('img');
+  beforeImg.className = 'preview-img';
+  beforeImg.alt = 'Sebelum';
+  setPreviewContent('previewBeforeItem', beforeImg);
+  attachPreviewWithFallback(beforeImg, urlOrig, 'Preview tidak tersedia<br>(format tidak didukung browser)');
 
+  const afterImg = document.createElement('img');
+  afterImg.className = 'preview-img';
+  afterImg.alt = 'Setelah';
+  setPreviewContent('previewAfterItem', afterImg);
+  attachPreviewWithFallback(afterImg, urlProc, 'Image terenkripsi<br>(struktur byte rusak)');
+
+  document.getElementById('previewGrid').classList.add('visible');
+}
+
+function createEncryptedPlaceholder(type, mimeType, sizeStr) {
+  const SVG_VIDEO =
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="2" y="4" width="16" height="16"/><polygon points="22,8 22,16 16,12"/>' +
+    '</svg>';
+  const SVG_AUDIO =
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>' +
+    '<path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' +
+    '<path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>' +
+    '</svg>';
+  const div = document.createElement('div');
+  div.className = 'preview-placeholder';
+  div.innerHTML =
+    (type === 'video' ? SVG_VIDEO : SVG_AUDIO) +
+    `<span class="preview-placeholder-title">${type === 'video' ? 'Video' : 'Audio'} terenkripsi</span>` +
+    `<span class="preview-placeholder-meta">Ukuran: ${sizeStr}&ensp;&middot;&ensp;${mimeType}</span>`;
+  return div;
+}
+
+function renderAudioPreview(originalBytes, processedBytes, mimeType, mode) {
+  const isEncrypt = mode === 'encrypt';
+  const playerBytes = isEncrypt ? originalBytes : processedBytes;
+  const placeholderBytes = isEncrypt ? processedBytes : originalBytes;
+  const audio = document.createElement('audio');
+  audio.controls = true;
+  audio.className = 'preview-audio-player';
+  audio.src = createMediaObjectURL(playerBytes, mimeType);
+  const placeholder = createEncryptedPlaceholder('audio', mimeType, formatFileSize(placeholderBytes.length));
+  setPreviewContent(isEncrypt ? 'previewBeforeItem' : 'previewAfterItem', audio);
+  setPreviewContent(isEncrypt ? 'previewAfterItem' : 'previewBeforeItem', placeholder);
+  document.getElementById('previewGrid').classList.add('visible');
+}
+
+function renderVideoPreview(originalBytes, processedBytes, mimeType, mode) {
+  const isEncrypt = mode === 'encrypt';
+  const playerBytes = isEncrypt ? originalBytes : processedBytes;
+  const placeholderBytes = isEncrypt ? processedBytes : originalBytes;
+  const video = document.createElement('video');
+  video.controls = true;
+  video.className = 'preview-video-player';
+  video.src = createMediaObjectURL(playerBytes, mimeType);
+  const placeholder = createEncryptedPlaceholder('video', mimeType, formatFileSize(placeholderBytes.length));
+  setPreviewContent(isEncrypt ? 'previewBeforeItem' : 'previewAfterItem', video);
+  setPreviewContent(isEncrypt ? 'previewAfterItem' : 'previewBeforeItem', placeholder);
   document.getElementById('previewGrid').classList.add('visible');
 }
 
